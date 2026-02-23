@@ -41,11 +41,27 @@ Industrial Metal;Alternative Metal;Neue Deutsche HäRte;Rock;Industrial;Electron
 pip install beets-multigenre
 ```
 
-### Manual
+### Docker (linuxserver.io)
+
+The [linuxserver.io beets image](https://docs.linuxserver.io/images/docker-beets/) uses its own Python environment at `/lsiopy`. To install the plugin and have it persist across container recreates, use a custom init script:
+
 ```bash
-git clone https://github.com/abstract/beets-multigenre
-cp beets-multigenre/beets_multigenre/__init__.py /path/to/your/beets/plugins/multigenre.py
+mkdir -p /path/to/beets/custom-cont-init.d
+cat > /path/to/beets/custom-cont-init.d/install-plugins.sh << 'EOF'
+#!/bin/bash
+/lsiopy/bin/pip install --upgrade beets-multigenre
+EOF
+chmod +x /path/to/beets/custom-cont-init.d/install-plugins.sh
 ```
+
+Then mount it in your `docker-compose.yml`:
+
+```yaml
+volumes:
+  - ./beets/custom-cont-init.d:/custom-cont-init.d
+```
+
+The plugin will install automatically every time the container starts.
 
 ## Configuration
 
@@ -73,6 +89,11 @@ beet multigenre artist:Rammstein
 beet multigenre album:"Mutter"
 ```
 
+### Force update all tracks (ignore existing values)
+```bash
+beet multigenre --force
+```
+
 ### Query by genre
 ```bash
 # Regex match - catches any track with "Neue Deutsche" anywhere in multi_genres
@@ -81,8 +102,8 @@ beet list multi_genres::"Neue Deutsche"
 # Exact substring match
 beet list multi_genres:"Industrial Metal"
 
-# Multiple genres (OR)
-beet list multi_genres::"Neue Deutsche" multi_genres::"Industrial Metal"
+# Multiple genres (OR) using regex
+beet list multi_genres::"Neue Deutsche|Industrial Metal|Electro-Industrial"
 ```
 
 ### Smart playlists
@@ -96,11 +117,16 @@ smartplaylist:
       query: 'multi_genres::"Neue Deutsche"'
 
     - name: 'Industrial Night.m3u'
-      query: 'multi_genres::Industrial multi_genres::EBM multi_genres::"Neue Deutsche" multi_genres::"Electro-Industrial"'
+      query: 'multi_genres::"Industrial|EBM|Neue Deutsche|Electro-Industrial"'
 
     - name: 'Gothic & Darkwave.m3u'
-      query: 'multi_genres::Gothic multi_genres::"Dark Wave" multi_genres::"Dark Ambient" multi_genres::"Death Rock"'
+      query: 'multi_genres::"Gothic|Dark Wave|Dark Ambient|Death Rock"'
+
+    - name: 'Synthwave.m3u'
+      query: 'multi_genres::"Synthwave|Darksynth|Synth-Pop"'
 ```
+
+Note: Use regex OR syntax (`field::"A|B|C"`) for OR logic. Multiple separate `field::` terms are AND logic.
 
 ## Why not just use lastgenre?
 
@@ -115,7 +141,7 @@ The `lastgenre` plugin fetches genres from Last.fm and stores up to `count` genr
 
 ## Crontab / Automation
 
-If you run beets imports on a schedule, add `beet multigenre` after the import:
+If you run beets imports on a schedule, add `beet multigenre` after the import. The plugin skips already-tagged tracks by default so hourly runs are efficient:
 
 ```crontab
 0 * * * * (timeout 3600 beet import -A -q /music; beet multigenre; beet splupdate) > /dev/null 2>&1
@@ -123,8 +149,9 @@ If you run beets imports on a schedule, add `beet multigenre` after the import:
 
 ## Contributing
 
-Issues and PRs welcome at [github.com/abstract/beets-multigenre](https://github.com/abstract/beets-multigenre).
+Issues and PRs welcome at [github.com/mkaltner/beets-multigenre](https://github.com/mkaltner/beets-multigenre).
 
 ## License
 
 MIT
+
