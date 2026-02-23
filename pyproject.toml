@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "beets-multigenre"
-version = "1.0.0"
+version = "1.0.2"
 description = "Beets plugin to read all GENRE tags from audio files into a queryable field"
 readme = "README.md"
 license = { text = "MIT" }
