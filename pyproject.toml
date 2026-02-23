@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "beets-multigenre"
+version = "1.0.0"
+description = "Beets plugin to read all GENRE tags from audio files into a queryable field"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Michael Kaltner" }
+]
+keywords = ["beets", "music", "genre", "tags", "metadata"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Sound/Audio",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "beets>=1.6.0",
+    "mutagen>=1.45.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/mkaltner/beets-multigenre"
+Issues = "https://github.com/mkaltner/beets-multigenre/issues"
+
+[project.entry-points."beets.plugins"]
+multigenre = "beetsplug.multigenre:MultiGenrePlugin"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["beetsplug*"]
